@@ -5,9 +5,10 @@ import axios from 'axios';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const schema = z.object({
-    email: z.string().min(1, { message: 'Expected a email.' }).email({ message: 'Invalid email format.' }),
+    username: z.string().min(1, { message: 'Expected a username.' }),
     password: z.string().min(1, { message: 'Exptected a password.' }).max(15, { message: 'Incorrect Password.' })
 });
 
@@ -18,17 +19,21 @@ export default function Login() {
 
     const togglePassword = () => {
         setShowPassword(!showPassword);
-    }
+    };
+
+    const navigate = useNavigate();
+
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<credentials>({ resolver: zodResolver(schema) });
 
     const onSubmit: SubmitHandler<credentials> = async (data) => {
         try {
-            const response = await axios.post('http://localhost:3000/api/login', { data }, {
+            const response = await axios.post('http://localhost:3000/auth/login', { data }, {
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
             if (response.status === 200) {
+                navigate('/dashboard');
                 console.log(response.data);
             } else {
                 console.log('Error submitting the user info.');
@@ -38,12 +43,12 @@ export default function Login() {
         }
     }
     return (
-        <div className='max-w-screen-sm max-h-screen inset-0 fixed m-auto w-[25rem] h-[15rem]'>
+        <div className='h-screen flex justify-center items-center'>
             <form className="form" onSubmit={handleSubmit(onSubmit)}>
                 <p className="form-title">Sign in to your account</p>
                 <div className="input-container">
-                    <input type="text" placeholder="Enter email" {...register('email')} />
-                    {errors.email && (<p className='text-red-500'>{errors.email.message}</p>)}
+                    <input type="text" placeholder="Enter username" {...register('username')} />
+                    {errors.username && (<p className='text-red-500'>{errors.username.message}</p>)}
                     <span>
                     </span>
                 </div>
