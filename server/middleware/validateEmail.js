@@ -1,4 +1,3 @@
-import validator from "validator";
 import approvedDomains from "./approvedDomains.js";
 
 const validateEmail = async (email) => {

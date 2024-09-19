@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import '../App.css';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -13,14 +14,14 @@ const schema = z.object({
             try {
                 const response = await axios.get(`http://localhost:3000/check/${username}`);
                 return !response.data.exists;
-            } catch(err) {
+            } catch (err) {
                 console.error('Error checking username: ', err);
                 return false;
             }
-    }, { message: 'Username already exists.' }),
+        }, { message: 'Username already exists.' }),
     college_name: z.string().min(1, { message: "Enter your college's name." }).max(15, { message: 'Exceeded the word limit.' }),
     email: z.string().min(1, { message: 'Expected an email.' }).email({ message: 'Invalid email format.' }),
-    password: z.string().min(1, { message: 'Exptected a password.' }).max(15, { message: 'Incorrect Password.' })
+    password: z.string().min(8, { message: 'Password should be at least of 8 characters' }).max(50, { message: 'Incorrect Password.' }).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@%^*,_])[A-Za-z\d!@%^*,_]*$/, { message: 'Password must include at least one lowercase letter, one uppercase letter, one digit, and one special character (!@%^*,_).' })
 });
 
 type credentials = z.infer<typeof schema>;
@@ -35,18 +36,20 @@ export default function Login() {
 
     const onSubmit: SubmitHandler<credentials> = async (data) => {
         try {
-            const response = await axios.post('http://localhost:3000/auth/signup', { data }, {
+            const response = await axios.post('http://localhost:3000/auth/signup', data, {
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
-            if (response.status === 200) {
-                console.log(response.data);
-            } else {
-                console.log('Error submitting the user info.');
+            if (response.status === 201) {
+                console.log(response.data.message);
             }
-        } catch (err) {
-            console.error("Couldn't connect to the server: ", err);
+        } catch (err: any) {
+            if(err.response) {
+                if(err.response.status === 409) {
+                    console.error('Error: ', err.response.data.error);
+                }
+            }
         }
     }
     return (
@@ -79,9 +82,9 @@ export default function Login() {
                 </div>
                 <div className="input-container">
                     <input type={showPassword ? 'text' : 'password'} placeholder="Password" {...register('password')} />
-                    <span className='absolute inset-y-0 right-0 pr-7 flex items-center cursor-pointer' onClick={togglePassword}>{showPassword ? <FaEye /> : <FaEyeSlash />}</span>
-                    {errors.password && (<p className='text-red-500'>{errors.password.message}</p>)}
+                    <span className='absolute inset-y-0 right-0 pr-5 flex items-center cursor-pointer' onClick={togglePassword}>{showPassword ? <FaEye /> : <FaEyeSlash />}</span>
                 </div>
+                    {errors.password && (<p className='text-red-500'>{errors.password.message}</p>)}
                 <button type="submit" className="submit">
                     {isSubmitting ? 'Signing Up' : 'Sign Up'}
                 </button>

@@ -1,5 +1,6 @@
 import express from 'express';
 import pool from './db/db.js';
+import cors from 'cors';
 import index from './routes/index.js';
 import signup from './routes/signup.js';
 import login from './routes/login.js';
@@ -9,6 +10,7 @@ import passport from 'passport';
 import LocalStrategy from 'passport-local';
 import bcrypt from 'bcrypt';
 import authCheck from './middleware/authCheck.js';
+import checkUsername from './middleware/checkUsername.js';
 
 const app = express();
 const port = process.env.PORT;
@@ -18,6 +20,10 @@ const pgStore = connectPgSimple(session);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(cors({
+    origin: 'http://localhost:5173'
+}));
 
 app.use(session({
     store: new pgStore({
@@ -50,7 +56,7 @@ passport.use(new LocalStrategy(async function (username, password, done) {
             return done(null, false, { message: 'Incorrect password.' });
         }
 
-        return done(null, user)
+        return done(null, user);
     } catch (err) {
         return done(err);
     }
@@ -71,13 +77,14 @@ passport.deserializeUser(async(id, done) => {
     } catch(error) {
         done(error, null);
     }
-})
+});
 
 pool.connect();
 
 app.use(index);
 app.use(login);
 app.use(signup);
+app.use(checkUsername);
 app.use(authCheck);
 
 app.listen(port, () => {
