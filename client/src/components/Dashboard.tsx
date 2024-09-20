@@ -18,7 +18,8 @@ export default function Dashboard() {
 
     return (
         <>
-            <h1>Welcome user { userId }</h1>
+            <h1>Welcome user { userId.full_name }</h1>
+            <h1>Welcome user { userId.username }</h1>
         </>
-    )
+    );
 }

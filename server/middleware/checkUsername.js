@@ -8,7 +8,7 @@ const validateUsername = [
     check('username').trim().notEmpty().escape()
 ]
 
-checkUsername.get('/check/:username', async (req, res) => {
+checkUsername.get('/check/:username', validateUsername, async (req, res) => {
     const errors = validationResult(req);
 
     if(!errors.isEmpty()) {

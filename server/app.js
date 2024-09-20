@@ -22,7 +22,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
-    origin: 'http://localhost:5173'
+    origin: 'http://localhost:5173',
+    credentials: true,
 }));
 
 app.use(session({
@@ -36,7 +37,7 @@ app.use(session({
     cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 5,
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: false || process.env.NODE_ENV === 'production',
     }
 }));
 
@@ -45,15 +46,15 @@ app.use(passport.session());
 
 passport.use(new LocalStrategy(async function (username, password, done) {
     try {
-        const result = await pool.query('SELECT username, user_pwd FROM users WHERE username = $1', [username]);
+        const result = await pool.query('SELECT user_id, username, user_pwd FROM users WHERE username = $1', [username]);
         if (result.rows.length === 0) {
-            return done(null, false, { message: 'User Not found.' });
+            return done(null, false, { error: 'User Not found.' });
         }
 
         const user = result.rows[0];
         const validatePassword = await bcrypt.compare(password, user.user_pwd);
         if (!validatePassword) {
-            return done(null, false, { message: 'Incorrect password.' });
+            return done(null, false, { error: 'Incorrect password.' });
         }
 
         return done(null, user);
@@ -82,10 +83,10 @@ passport.deserializeUser(async(id, done) => {
 pool.connect();
 
 app.use(index);
-app.use(login);
 app.use(signup);
-app.use(checkUsername);
+app.use(login);
 app.use(authCheck);
+app.use(checkUsername);
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

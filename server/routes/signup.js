@@ -21,7 +21,7 @@ const validateInputs = [
     body('password').trim().notEmpty().escape()
 ]
 
-signup.post('/auth/signup', async (req, res) => {
+signup.post('/auth/signup', validateInputs, async (req, res) => {
     const errors = validationResult(req);
 
     if(!errors.isEmpty()) {
@@ -29,6 +29,7 @@ signup.post('/auth/signup', async (req, res) => {
     }
 
     const { full_name, username, college_name, email, password } = req.body;
+    const user = username.toLowerCase();
     const user_pwd = await hashedPassword(password);
     const user_id = uniqueIdGenerator(email);
 
@@ -39,7 +40,7 @@ signup.post('/auth/signup', async (req, res) => {
             return res.status(409).json({ error: 'Email already in use.' });
         }
 
-        await pool.query('INSERT INTO users (user_id, full_name, username, college_name, email, user_pwd) VALUES ($1, $2, $3, $4, $5, $6)', [user_id, full_name, username, college_name, email, user_pwd]);
+        await pool.query('INSERT INTO users (user_id, full_name, username, college_name, email, user_pwd) VALUES ($1, $2, $3, $4, $5, $6)', [user_id, full_name, user, college_name, email, user_pwd]);
         res.status(201).json({ message: 'User added successfully.' });
     } catch(err) {
         res.status(500).json({ message: 'Internal Server Error.' });

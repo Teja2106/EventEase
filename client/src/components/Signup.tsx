@@ -10,6 +10,7 @@ import { useState } from 'react';
 const schema = z.object({
     full_name: z.string().min(1, { message: 'Enter your full name.' }).max(20, { message: 'Exceeded the word limit.' }),
     username: z.string().min(1, { message: 'Expected a username.' }).max(15, { message: 'Exceeded the word limit.' })
+    .regex(/^[a-zA-Z0-9._]+$/, { message: 'Username can only contain character[a-z, A-Z], numbers[0-9] and special characters["." and "_"]' })
         .refine(async (username) => {
             try {
                 const response = await axios.get(`http://localhost:3000/check/${username}`);
@@ -58,34 +59,48 @@ export default function Login() {
                 <p className="form-title">Sign up.</p>
                 <div className="input-container">
                     <input type="text" placeholder="Full name" {...register('full_name')} />
-                    {errors.full_name && (<p className='text-red-500'>{errors.full_name.message}</p>)}
                     <span>
                     </span>
                 </div>
+                    {errors.full_name && (<p className='text-red-500 text-sm pl-1'>{errors.full_name.message}</p>)}
                 <div className="input-container">
                     <input type="text" placeholder="Username" {...register('username')} />
-                    {errors.username && (<p className='text-red-500'>{errors.username.message}</p>)}
                     <span>
                     </span>
                 </div>
+                    {errors.username && (<p className='text-red-500 text-sm pl-1'>{errors.username.message}</p>)}
                 <div className="input-container">
                     <input type="text" placeholder="College Name" {...register('college_name')} />
-                    {errors.college_name && (<p className='text-red-500'>{errors.college_name.message}</p>)}
                     <span>
                     </span>
                 </div>
+                    <ul className='list-disc pl-6'>
+                        <li>
+                            <p className='text-gray-500 text-xs'>Do you use the abbreviation of your college.</p>
+                        </li>
+                    </ul>
+                    {errors.college_name && (<p className='text-red-500 text-sm pl-1'>{errors.college_name.message}</p>)}
                 <div className="input-container">
                     <input type="text" placeholder="Email" {...register('email')} />
-                    {errors.email && (<p className='text-red-500'>{errors.email.message}</p>)}
+                    {errors.email && (<p className='text-red-500 text-sm pl-1'>{errors.email.message}</p>)}
                     <span>
                     </span>
                 </div>
                 <div className="input-container">
                     <input type={showPassword ? 'text' : 'password'} placeholder="Password" {...register('password')} />
-                    <span className='absolute inset-y-0 right-0 pr-5 flex items-center cursor-pointer' onClick={togglePassword}>{showPassword ? <FaEye /> : <FaEyeSlash />}</span>
+                    <span className='absolute inset-y-0 right-1 pr-7 flex items-center cursor-pointer' onClick={togglePassword}>{showPassword ? <FaEye /> : <FaEyeSlash />}</span>
                 </div>
-                    {errors.password && (<p className='text-red-500'>{errors.password.message}</p>)}
-                <button type="submit" className="submit">
+                    <ul className='list-disc pl-6'>
+                        <li>
+                            <p className='text-gray-500 text-xs'>Password must be 8 characters long.</p>
+                        </li>
+                        <li>
+                            <p className='text-gray-500 text-xs'>It should contain AT LEAST one Uppercase, one digit & one special character(!@%^*,_)</p>
+                        </li>
+                    </ul>
+                    {errors.password && (<p className='text-red-500 text-sm'>{errors.password.message}</p>)}
+                    <br />
+                <button type="submit" className={`submit`}>
                     {isSubmitting ? 'Signing Up' : 'Sign Up'}
                 </button>
             </form>

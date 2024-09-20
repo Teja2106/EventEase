@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import '../App.css';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 
 const schema = z.object({
     username: z.string().min(1, { message: 'Expected a username.' }),
-    password: z.string().min(1, { message: 'Exptected a password.' }).max(15, { message: 'Incorrect Password.' })
+    password: z.string().min(1, { message: 'Exptected a password.' }).max(30, { message: 'Incorrect Password.' })
 });
 
 type credentials = z.infer<typeof schema>;
@@ -28,18 +29,25 @@ export default function Login() {
     const onSubmit: SubmitHandler<credentials> = async (data) => {
         try {
             const response = await axios.post('http://localhost:3000/auth/login', data, {
+                withCredentials: true,
                 headers: {
                     'Content-Type': 'application/json'
                 }
             });
             if (response.status === 200) {
+                console.log(response.data.success);
                 navigate('/dashboard');
-                console.log(response.data);
             } else {
                 console.log('Error submitting the user info.');
             }
-        } catch (err) {
-            console.error("Couldn't connect to the server: ", err);
+        } catch (err: any) {
+            if(err.response) {
+                if(err.response.status === 401) {
+                    console.error(err.response.data.error)
+                }
+            } else {
+                console.error("Couldn't connect to the server: ", err.response.data.error);
+            }
         }
     }
     return (
@@ -53,10 +61,10 @@ export default function Login() {
                     </span>
                 </div>
                 <div className="input-container">
-                    <input type="password" placeholder="Enter password" {...register('password')} />
+                    <input type={showPassword ? 'text' : 'password'} placeholder="Enter password" {...register('password')} />
                     <span className='absolute inset-y-0 right-0 pr-7 flex items-center cursor-pointer' onClick={togglePassword}>{showPassword ? <FaEye /> : <FaEyeSlash />}</span>
-                    {errors.password && (<p className='text-red-500'>{errors.password.message}</p>)}
                 </div>
+                    {errors.password && (<p className='text-red-500'>{errors.password.message}</p>)}
                 <button type="submit" className="submit">
                     {isSubmitting ? 'Signing In' : 'Sign In'}
                 </button>
